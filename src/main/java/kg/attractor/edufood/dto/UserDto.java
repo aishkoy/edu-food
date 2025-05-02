@@ -5,9 +5,6 @@ import kg.attractor.edufood.validation.annotation.UniqueEmail;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -47,7 +44,4 @@ public class UserDto {
 
     @NotNull
     RoleDto role;
-
-    @Builder.Default
-    List<OrderDto> orders = new ArrayList<>();
 }

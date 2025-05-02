@@ -3,8 +3,6 @@ package kg.attractor.edufood.dto;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,6 +20,4 @@ public class RestaurantDto {
     String image;
 
     String address;
-
-    List<ProductDto> products;
 }
