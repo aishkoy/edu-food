@@ -17,7 +17,7 @@
                 <i data-lucide="home" class="h-5 w-5 mr-2"></i>
                 На главную
             </a>
-            <a href="/login" class="bg-amber-500 text-white font-bold py-3 px-6 rounded-xl flex items-center">
+            <a href="/auth/login" class="bg-amber-500 text-white font-bold py-3 px-6 rounded-xl flex items-center">
                 <i data-lucide="log-in" class="h-5 w-5 mr-2"></i>
                 Войти
             </a>

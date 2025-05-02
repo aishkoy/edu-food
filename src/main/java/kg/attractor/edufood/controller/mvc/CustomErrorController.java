@@ -54,7 +54,7 @@ public class CustomErrorController implements ErrorController {
             }
         }
         
-        model.addAttribute("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        model.addAttribute("status", HttpStatus.CONFLICT.value());
         model.addAttribute("reason", "Ошибка");
         model.addAttribute("errorIcon", "alert-circle");
         model.addAttribute("errorTitle", "Произошла ошибка");
