@@ -26,6 +26,13 @@ public class OrderProductServiceImpl implements OrderProductService {
                 "У данного заказа пока нет продуктов!");
     }
 
+    @Override
+    public void save(OrderProductDto orderProduct) {
+        OrderProduct op = orderProductMapper.toEntity(orderProduct);
+        orderProductRepository.save(op);
+        log.info("Сохранен новый элемент заказа {}", op.getId());
+    }
+
     private List<OrderProductDto> findAndValidate(Supplier<List<OrderProduct>> supplier, String notFoundMessage) {
         List<OrderProduct> orderProducts = supplier.get();
         if (orderProducts.isEmpty()) {

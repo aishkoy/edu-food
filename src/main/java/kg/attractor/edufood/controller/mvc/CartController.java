@@ -3,6 +3,7 @@ package kg.attractor.edufood.controller.mvc;
 import jakarta.servlet.http.HttpSession;
 import kg.attractor.edufood.dto.OrderDto;
 import kg.attractor.edufood.service.interfaces.CartService;
+import kg.attractor.edufood.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,12 +11,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller("mvcCart")
 @RequestMapping("/cart")
 @RequiredArgsConstructor
 public class CartController {
     private final CartService cartService;
+    private final UserService userService;
 
     @PostMapping
     public String addToCart(@RequestParam Long productId,
@@ -51,5 +54,21 @@ public class CartController {
             return "redirect:" + redirectUrl;
         }
         return "redirect:/cart";
+    }
+
+    @PostMapping("checkout")
+    public String checkoutCart(HttpSession session, RedirectAttributes redirectAttributes) {
+        try {
+            cartService.checkout(session, userService.getAuthUser());
+
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Заказ успешно оформлен!");
+
+            return "redirect:/profile/orders";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Произошла ошибка при оформлении заказа: " + e.getMessage());
+            return "redirect:/cart";
+        }
     }
 }

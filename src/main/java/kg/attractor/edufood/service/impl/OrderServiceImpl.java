@@ -109,6 +109,13 @@ public class OrderServiceImpl implements OrderService {
         return PageRequest.of(page - 1, size, Sort.by(direction, sortBy));
     }
 
+    @Override
+    public Order save(OrderDto orderDto){
+        Order order = orderMapper.toEntity(orderDto);
+        log.info("Сохранение нового заказа");
+        return orderRepository.save(order);
+    }
+
     private Page<OrderDto> getOrderPage(Supplier<Page<Order>> supplier, String notFoundMessage) {
         Page<Order> page = supplier.get();
         if (page.isEmpty()) {

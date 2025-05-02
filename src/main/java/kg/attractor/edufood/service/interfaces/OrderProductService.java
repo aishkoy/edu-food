@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface OrderProductService {
     List<OrderProductDto> getAllByOrderId(Long orderId4);
+
+    void save(OrderProductDto orderProduct);
 }

@@ -1,6 +1,7 @@
 package kg.attractor.edufood.service.interfaces;
 
 import kg.attractor.edufood.dto.OrderDto;
+import kg.attractor.edufood.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -23,4 +24,6 @@ public interface OrderService {
 
     Page<OrderDto>getFilteredOrders(Long userId, LocalDate dateFrom, LocalDate dateTo, Pageable pageable);
     Pageable createPageableWithSort(int page, int size, String sortDirection, String sortBy);
+
+    Order save(OrderDto orderDto);
 }

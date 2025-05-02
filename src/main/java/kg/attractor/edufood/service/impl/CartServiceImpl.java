@@ -1,16 +1,13 @@
 package kg.attractor.edufood.service.impl;
 
 import jakarta.servlet.http.HttpSession;
-import kg.attractor.edufood.dto.OrderDto;
-import kg.attractor.edufood.dto.OrderProductDto;
-import kg.attractor.edufood.dto.OrderStatusDto;
-import kg.attractor.edufood.dto.ProductDto;
-import kg.attractor.edufood.service.interfaces.CartService;
-import kg.attractor.edufood.service.interfaces.OrderStatusService;
-import kg.attractor.edufood.service.interfaces.ProductService;
+import kg.attractor.edufood.dto.*;
+import kg.attractor.edufood.entity.Order;
+import kg.attractor.edufood.service.interfaces.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Iterator;
@@ -21,6 +18,8 @@ import java.util.Iterator;
 public class CartServiceImpl implements CartService {
     private final ProductService productService;
     private final OrderStatusService orderStatusService;
+    private final OrderService orderService;
+    private final OrderProductService orderProductService;
 
     @Override
     public void addToCart(Long productId, Integer quantity, HttpSession session) {
@@ -37,7 +36,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public OrderDto getOrCreateCart(HttpSession session) {
         log.info("Проверка существования корзины в сессии.");
-        return  session.getAttribute("cart") != null
+        return session.getAttribute("cart") != null
                 ? (OrderDto) session.getAttribute("cart")
                 : createNewCart(session);
     }
@@ -74,6 +73,42 @@ public class CartServiceImpl implements CartService {
         updateSessionCart(session, cart);
         return cart;
     }
+
+    @Override
+    @Transactional
+    public void checkout(HttpSession session, UserDto user) {
+        OrderDto cartDto = getOrCreateCart(session);
+
+        if (cartDto.getOrderProducts().isEmpty()) {
+            throw new IllegalStateException("Корзина пуста. Невозможно оформить заказ");
+        }
+
+        OrderStatusDto status = orderStatusService.getOrderStatusByName("Оплачен");
+        OrderDto order = OrderDto.builder()
+                .totalAmount(cartDto.getTotalAmount())
+                .totalQuantity(cartDto.getTotalQuantity())
+                .status(status)
+                .user(user)
+                .build();
+
+
+        Order savedOrder = orderService.save(order);
+
+        for (OrderProductDto cartItemDto : cartDto.getOrderProducts()) {
+            OrderProductDto orderProduct = OrderProductDto.builder()
+                    .orderId(savedOrder.getId())
+                    .product(cartItemDto.getProduct())
+                    .amount(cartItemDto.getAmount())
+                    .quantity(cartItemDto.getQuantity())
+                    .build();
+
+            orderProductService.save(orderProduct);
+        }
+
+        session.removeAttribute("cart");
+        log.info("Корзина очищена");
+    }
+
 
     private OrderDto createNewCart(HttpSession session) {
         OrderStatusDto status = orderStatusService.getOrderStatusByName("Корзина");
