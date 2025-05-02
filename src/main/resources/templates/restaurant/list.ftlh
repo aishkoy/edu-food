@@ -98,7 +98,7 @@
                                             <p class="text-gray-600">${restaurant.address}</p>
                                         </div>
 
-                                        <p class="text-gray-600 mt-4 line-clamp-3">${restaurant.description!''}</p>
+                                        <p class="text-start text-gray-600 mt-4 line-clamp-3">${restaurant.description!''}</p>
 
                                         <div class="mt-6 flex justify-between items-center">
                                             <a href="/restaurants/${restaurant.id}"

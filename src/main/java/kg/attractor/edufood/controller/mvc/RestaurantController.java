@@ -54,23 +54,25 @@ public class RestaurantController {
                                           @RequestParam(defaultValue = "asc") String sortDirection,
                                           @RequestParam(defaultValue = "name") String sortBy,
                                           Model model) {
+
+        RestaurantDto restaurant = null;
         try {
-            RestaurantDto restaurant = restaurantService.getRestaurantById(id);
-            model.addAttribute("restaurant", restaurant);
-
-            Pageable pageable = productService.createPageableWithSort(page, size, sortDirection, sortBy);
-            Page<ProductDto> products = productService.getAllRestaurantsProducts(id, pageable);
-            model.addAttribute("products", products);
-
-            model.addAttribute("sortDirection", sortDirection);
-            model.addAttribute("sortBy", sortBy);
-            model.addAttribute("currentPage", page);
-            model.addAttribute("pageSize", size);
-
-            return "restaurant/detail";
+            restaurant = restaurantService.getRestaurantById(id);
         } catch (NoSuchElementException e) {
             model.addAttribute("error", "Ресторан не найден!");
-            return "redirect:/restaurants";
         }
+        model.addAttribute("restaurant", restaurant);
+
+        Pageable pageable = productService.createPageableWithSort(page, size, sortDirection, sortBy);
+        Page<ProductDto> products = productService.getAllRestaurantsProducts(id, pageable);
+        model.addAttribute("products", products);
+
+        model.addAttribute("sortDirection", sortDirection);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", size);
+
+        return "restaurant/detail";
+
     }
 }
