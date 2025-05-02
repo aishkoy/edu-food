@@ -16,4 +16,11 @@ create table users
             references roles (id)
             on delete cascade
             on update cascade
-)
+);
+
+insert into users(name, surname, email, password, address, avatar, enabled, role_id)
+values ('Ivan', 'Ivanov', 'qwe@qwe.qwe', '$2a$12$vqRuFc/bqqQri/oukiZLZulTCQ6dfq1nbzptLhsQbwnasaLjvy2uW', 'Бишкек', null,
+        true, (select id from ROLES where name = 'USER')),
+       ('Aisha', 'Orozbekova', 'ewq@ewq.ewq', '$2a$12$vqRuFc/bqqQri/oukiZLZulTCQ6dfq1nbzptLhsQbwnasaLjvy2uW', 'Бишкек', null,
+        true, (select id from ROLES where name = 'USER'));
+
