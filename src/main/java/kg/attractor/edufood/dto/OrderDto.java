@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class OrderDto {
     Integer totalQuantity = 0;
 
     @Builder.Default
-    Timestamp date = null;
+    Timestamp date = Timestamp.from(Instant.now());
 
     @Builder.Default
     List<OrderProductDto> orderProducts = new ArrayList<>();
