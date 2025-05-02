@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 
@@ -28,6 +29,11 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final RestaurantMapper restaurantMapper;
 
     @Override
+    public List<RestaurantDto> getMostOrderedRestaurants(int limit){
+        return findAndValidate(() -> restaurantRepository.findMostOrderedRestaurants(limit), null);
+    }
+
+    @Override
     public RestaurantDto getRestaurantById(Long restaurantId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RestaurantNotFoundException("Ресторан с таким id не был найден!"));
@@ -35,9 +41,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         return restaurantMapper.toDto(restaurant);
     }
 
-    @Override
-    public Page<RestaurantDto> getRestaurantsByName(String name, int page, int size, String sortDirection) {
-        Pageable pageable = createPageableWithSort(page, size, sortDirection, "name");
+    public Page<RestaurantDto> getRestaurantsByName(String name, Pageable pageable) {
         try {
             return getRestaurantPage(() -> restaurantRepository.findByNameStartingWith(name, pageable));
         } catch (NoSuchElementException e) {
@@ -46,35 +50,47 @@ public class RestaurantServiceImpl implements RestaurantService {
         }
     }
 
-    @Override
-    public Page<RestaurantDto> getAllRestaurants(int page, int size, String sortDirection) {
-        Pageable pageable = createPageableWithSort(page, size, sortDirection, "id");
+    public Page<RestaurantDto> getAllRestaurants(Pageable pageable) {
         return getRestaurantPage(() -> restaurantRepository.findAll(pageable),
                 "Рестораны на этой странице не были найдены!");
+    }
+
+    @Override
+    public List<RestaurantDto> getAllRestaurants(){
+        return findAndValidate(restaurantRepository::findAll, null);
     }
 
     @Override
     public ResponseEntity<?> getRestaurantImage(Long restaurantId) {
         RestaurantDto restaurantDto = getRestaurantById(restaurantId);
 
-        if (restaurantDto.getImage() == null || restaurantDto.getImage().isEmpty()) {
-            return FileUtil.getStaticFile("default_restaurant.jpg", "images/restaurants/", MediaType.IMAGE_JPEG);
-        }
-
         String filename = restaurantDto.getImage();
         String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         MediaType mediaType = extension.equals("png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
 
         log.info("Получение фотографии для ресторана с id {}", restaurantId );
-        return FileUtil.getStaticFile(filename, "images/restaurants/", mediaType);
+        try{
+            return FileUtil.getStaticFile(filename, "images/restaurants/", mediaType);
+        }catch (NoSuchElementException e){
+            return FileUtil.getStaticFile("default_restaurant.jpg", "images/restaurants/", MediaType.IMAGE_JPEG);
+        }
     }
 
-    private Pageable createPageableWithSort(int page, int size, String sortDirection, String sortBy) {
+    @Override
+    public Pageable createPageableWithSort(int page, int size, String sortDirection, String sortBy) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc")
                 ? Sort.Direction.ASC
                 : Sort.Direction.DESC;
 
         return PageRequest.of(page - 1, size, Sort.by(direction, sortBy));
+    }
+
+    @Override
+    public Page<RestaurantDto> getRestaurants(String name, Pageable pageable) {
+        if(name != null && !name.isBlank()){
+            return getRestaurantsByName(name, pageable);
+        }
+        return getAllRestaurants(pageable);
     }
 
     private Page<RestaurantDto> getRestaurantPage(Supplier<Page<Restaurant>> supplier) {
@@ -90,5 +106,16 @@ public class RestaurantServiceImpl implements RestaurantService {
         }
         log.info("Получено {} ресторанов на странице", page.getSize());
         return page.map(restaurantMapper::toDto);
+    }
+
+    private List<RestaurantDto> findAndValidate(Supplier<List<Restaurant>> supplier, String notFoundMessage){
+        List<Restaurant> restaurants = supplier.get();
+        if(restaurants.isEmpty()){
+            throw new RestaurantNotFoundException(
+                    notFoundMessage != null ? notFoundMessage : "Рестораны не были найдены"
+            );
+        }
+        log.info("Получено ресторанов: {}", restaurants.size());
+        return restaurants.stream().map(restaurantMapper::toDto).toList();
     }
 }
