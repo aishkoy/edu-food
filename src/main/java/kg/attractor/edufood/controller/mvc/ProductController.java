@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.NoSuchElementException;
 
 @Controller("mvcProduct")
 @RequestMapping("/products")
@@ -36,9 +37,14 @@ public class ProductController {
 
         Pageable pageable = productService.createPageableWithSort(page, size, sortDirection, sortBy);
 
-        Page<ProductDto> productsPage = productService.getFilteredProducts(
-                name, minPrice, maxPrice, categoryId, restaurantId, pageable);
+        Page<ProductDto> productsPage = null;
 
+        try{
+            productsPage = productService.getFilteredProducts(
+                    name, minPrice, maxPrice, categoryId, restaurantId, pageable);
+        } catch (NoSuchElementException e){
+            model.addAttribute("error", "Блюда не были найдены, попробуйте поменять критерии поиска!");
+        }
         model.addAttribute("products", productsPage);
         model.addAttribute("categories", productCategoryService.getAllCategories());
         model.addAttribute("restaurants", restaurantService.getAllRestaurants());

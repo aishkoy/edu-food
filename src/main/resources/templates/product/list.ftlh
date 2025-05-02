@@ -164,7 +164,7 @@
                                     </div>
 
                                     <div class="flex-grow mb-4">
-                                        <p class="text-gray-600 text-sm overflow-hidden line-clamp-3 h-8">${product.description!''}</p>
+                                        <p class="text-gray-600 text-sm overflow-hidden line-clamp-3 h-10">${product.description!''}</p>
                                         <a href="/restaurants/${product.restaurant.id}" class="block mt-2 text-sm text-gray-500 hover:text-teal-600 transition">${product.restaurant.name}</a>
                                     </div>
 
