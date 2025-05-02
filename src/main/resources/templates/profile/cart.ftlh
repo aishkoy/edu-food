@@ -20,6 +20,7 @@
                                     <div class="text-left">
                                         <h3 class="font-medium">${productItem.product.name}</h3>
                                         <p class="text-gray-500 text-sm">${productItem.product.description}</p>
+                                        <p class="text-gray-500 text-sm">${productItem.product.restaurant.name}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center">

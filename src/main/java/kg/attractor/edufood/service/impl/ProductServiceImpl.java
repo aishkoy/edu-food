@@ -107,6 +107,11 @@ public class ProductServiceImpl implements ProductService {
         ProductDto productDto = getProductById(productId);
 
         String filename = productDto.getImage();
+
+        if(filename == null || filename.isBlank()){
+            return FileUtil.getStaticFile("product.jpg", "images/products", MediaType.IMAGE_JPEG);
+        }
+
         String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         MediaType mediaType = extension.equals("png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
 

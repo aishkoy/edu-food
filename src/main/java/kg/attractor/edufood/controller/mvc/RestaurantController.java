@@ -50,7 +50,7 @@ public class RestaurantController {
     @GetMapping("/{id}")
     public String getRestaurantDetailPage(@PathVariable Long id,
                                           @RequestParam(defaultValue = "1") int page,
-                                          @RequestParam(defaultValue = "9") int size,
+                                          @RequestParam(defaultValue = "10") int size,
                                           @RequestParam(defaultValue = "asc") String sortDirection,
                                           @RequestParam(defaultValue = "name") String sortBy,
                                           Model model) {

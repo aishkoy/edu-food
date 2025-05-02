@@ -7,4 +7,6 @@ public interface CartService {
     void addToCart(Long productId, Integer quantity, HttpSession session);
 
     OrderDto getOrCreateCart(HttpSession session);
+
+    OrderDto updateCartItemQuantity(Long productId, Integer quantityChange, HttpSession session);
 }

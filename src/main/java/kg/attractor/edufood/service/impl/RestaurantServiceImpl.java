@@ -65,6 +65,10 @@ public class RestaurantServiceImpl implements RestaurantService {
         RestaurantDto restaurantDto = getRestaurantById(restaurantId);
 
         String filename = restaurantDto.getImage();
+        if(filename == null || filename.isBlank()){
+            return FileUtil.getStaticFile("default_restaurant.jpg", "images/restaurants/", MediaType.IMAGE_JPEG);
+        }
+
         String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         MediaType mediaType = extension.equals("png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
 
