@@ -23,4 +23,7 @@ public class ProductCategory {
     @Column(name = "name",
             nullable = false)
     String name;
+
+    @Column(name = "icon")
+    String icon;
 }
