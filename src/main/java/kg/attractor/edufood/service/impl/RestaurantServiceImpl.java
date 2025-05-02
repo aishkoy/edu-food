@@ -37,7 +37,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public Page<RestaurantDto> getRestaurantsByName(String name, int page, int size, String sortDirection) {
-        Pageable pageable = createPageableWithSort(page, size, sortDirection);
+        Pageable pageable = createPageableWithSort(page, size, sortDirection, "name");
         try {
             return getRestaurantPage(() -> restaurantRepository.findByNameStartingWith(name, pageable));
         } catch (NoSuchElementException e) {
@@ -48,7 +48,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public Page<RestaurantDto> getAllRestaurants(int page, int size, String sortDirection) {
-        Pageable pageable = createPageableWithSort(page, size, sortDirection);
+        Pageable pageable = createPageableWithSort(page, size, sortDirection, "id");
         return getRestaurantPage(() -> restaurantRepository.findAll(pageable),
                 "Рестораны на этой странице не были найдены!");
     }
@@ -58,7 +58,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         RestaurantDto restaurantDto = getRestaurantById(restaurantId);
 
         if (restaurantDto.getImage() == null || restaurantDto.getImage().isEmpty()) {
-            return FileUtil.getStaticFile("default_restaurant.jpg", "images/", MediaType.IMAGE_JPEG);
+            return FileUtil.getStaticFile("default_restaurant.jpg", "images/restaurants/", MediaType.IMAGE_JPEG);
         }
 
         String filename = restaurantDto.getImage();
@@ -66,15 +66,15 @@ public class RestaurantServiceImpl implements RestaurantService {
         MediaType mediaType = extension.equals("png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
 
         log.info("Получение фотографии для ресторана с id {}", restaurantId );
-        return FileUtil.getOutputFile(filename, "images/", mediaType);
+        return FileUtil.getStaticFile(filename, "images/restaurants/", mediaType);
     }
 
-    private Pageable createPageableWithSort(int page, int size, String sortDirection) {
+    private Pageable createPageableWithSort(int page, int size, String sortDirection, String sortBy) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc")
                 ? Sort.Direction.ASC
                 : Sort.Direction.DESC;
 
-        return PageRequest.of(page - 1, size, direction);
+        return PageRequest.of(page - 1, size, Sort.by(direction, sortBy));
     }
 
     private Page<RestaurantDto> getRestaurantPage(Supplier<Page<Restaurant>> supplier) {

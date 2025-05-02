@@ -63,7 +63,7 @@ public class OrderServiceImpl implements OrderService {
                 ? Sort.Direction.ASC
                 : Sort.Direction.DESC;
 
-        return PageRequest.of(page - 1, size, direction);
+        return PageRequest.of(page - 1, size, Sort.by(direction, "date"));
     }
 
     private Page<OrderDto> getOrderPage(Supplier<Page<Order>> supplier, String notFoundMessage) {

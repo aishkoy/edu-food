@@ -42,7 +42,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductDto> getAllRestaurantsProducts(Long restaurantId, int page, int size, String sortDirection) {
-        Pageable pageable = createPageableWithSort(page, size, sortDirection);
+        Pageable pageable = createPageableWithSort(page, size, sortDirection, "id");
         return getProductPage(() -> productRepository.findByRestaurantId(restaurantId, pageable),
                 "Продукты ресторана на этой странице не были найдены!");
     }
@@ -56,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductDto> getProductsByName(String name, int page, int size, String sortDirection) {
-        Pageable pageable = createPageableWithSort(page, size, sortDirection);
+        Pageable pageable = createPageableWithSort(page, size, sortDirection, "name");
         try {
             return getProductPage(() -> productRepository.findByNameStartingWith(name, pageable));
         } catch (NoSuchElementException e) {
@@ -68,7 +68,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductDto> getProductsByCategoryId(Long categoryId, int page, int size, String sortDirection) {
         productCategoryService.getProductCategoryById(categoryId);
-        Pageable pageable = createPageableWithSort(page, size, sortDirection);
+        Pageable pageable = createPageableWithSort(page, size, sortDirection, "id");
         return getProductPage(() -> productRepository.findByCategoryId(categoryId, pageable),
                 "Нет продуктов с такой категорией!");
     }
@@ -76,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductDto> getProductsByPriceGreaterThanEqual(BigDecimal price, int page, int size, String sortDirection){
         validatePricesGreaterThanZero(price);
-        Pageable pageable = createPageableWithSort(page, size, sortDirection);
+        Pageable pageable = createPageableWithSort(page, size, sortDirection, "price");
         return getProductPage(() -> productRepository.findByPriceGreaterThanEqual(price, pageable),
                 "Продукты с ценой выше " + price + " не были найдены!");
     }
@@ -84,7 +84,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductDto> getProductsByPriceLessThanEqual(BigDecimal price, int page, int size, String sortDirection) {
         validatePricesGreaterThanZero(price);
-        Pageable pageable = createPageableWithSort(page, size, sortDirection);
+        Pageable pageable = createPageableWithSort(page, size, sortDirection, "price");
         return getProductPage(() -> productRepository.findByPriceLessThanEqual(price, pageable),
                 "Продукты с ценой ниже " + price + " не были найдены!");
     }
@@ -93,7 +93,7 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductDto> getProductsByPriceBetween(BigDecimal minPrice, BigDecimal maxPrice, int page, int size, String sortDirection) {
         validatePricesGreaterThanZero(minPrice, maxPrice);
         validateMinPriceLessThanMaxPrice(minPrice, maxPrice);
-        Pageable pageable = createPageableWithSort(page, size, sortDirection);
+        Pageable pageable = createPageableWithSort(page, size, sortDirection, "price");
         return getProductPage(() -> productRepository.findByPriceBetween(minPrice, maxPrice, pageable),
                 "Продукты с ценой в диапазоне от " + minPrice + " до " + maxPrice + " не были найдены!");
     }
@@ -103,7 +103,7 @@ public class ProductServiceImpl implements ProductService {
         ProductDto productDto = getProductById(productId);
 
         if (productDto.getImage() == null || productDto.getImage().isEmpty()) {
-            return FileUtil.getStaticFile("default_product.jpg", "images/", MediaType.IMAGE_JPEG);
+            return FileUtil.getStaticFile("default_product.jpg", "images/products/", MediaType.IMAGE_JPEG);
         }
 
         String filename = productDto.getImage();
@@ -111,15 +111,15 @@ public class ProductServiceImpl implements ProductService {
         MediaType mediaType = extension.equals("png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
 
         log.info("Получение фотографии для блюда с id {}", productId);
-        return FileUtil.getOutputFile(filename, "images/", mediaType);
+        return FileUtil.getStaticFile(filename, "images/products/", mediaType);
     }
-    
-    private Pageable createPageableWithSort(int page, int size, String sortDirection) {
+
+    private Pageable createPageableWithSort(int page, int size, String sortDirection, String sortBy) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc")
                 ? Sort.Direction.ASC
                 : Sort.Direction.DESC;
 
-        return PageRequest.of(page - 1, size, direction);
+        return PageRequest.of(page - 1, size, Sort.by(direction, sortBy));
     }
 
     private Page<ProductDto> getProductPage(Supplier<Page<Product>> supplier) {
