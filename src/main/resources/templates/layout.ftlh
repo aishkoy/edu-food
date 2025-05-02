@@ -1,4 +1,22 @@
 <#import "/spring.ftl" as spring>
+
+<#assign known = SPRING_SECURITY_CONTEXT?? >
+<#if known>
+    <#assign
+    currentUser = SPRING_SECURITY_CONTEXT.authentication.principal
+    currentUserId = currentUser.getUserId()
+    roles = currentUser.authorities
+    >
+</#if>
+
+<#assign hasCart = Session?? && Session["cart"]?? />
+<#if hasCart>
+    <#assign
+    cart = Session["cart"]
+    cartItemsCount = cart.totalQuantity!0
+    />
+</#if>
+
 <#macro layout title="EduFood" additionalStyles="" showBackButton=false>
     <!doctype html>
     <html lang="ru">
@@ -11,7 +29,8 @@
         <script src="https://unpkg.com/lucide@latest"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+              rel="stylesheet">
         <title>${title}</title>
         <style>
             body {
@@ -29,10 +48,31 @@
                 <a href="/" class="font-bold text-teal-600 text-4xl">
                     Edu Food
                 </a>
-                <a href="/login"
-                   class="bg-teal-600 text-white font-bold py-2 px-4 rounded flex items-center justify-between gap-2 rounded-xl">
-                    <i data-lucide="user" class="text-white h-5 w-5"></i><span>Войти</span>
-                </a>
+                <div class="flex gap-8 items-center">
+                    <a href="/cart" class="relative bg-white rounded-full p-3 shadow-md hover:shadow-lg transition-all">
+                        <i data-lucide="shopping-cart" class="h-6 w-6 text-teal-600"></i>
+                        <#if cart??>
+                            <span class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                            ${cart.totalQuantity}
+                            </span>
+                        <#else>
+                            <span class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                            0
+                             </span>
+                        </#if>
+                    </a>
+                    <#if currentUser??>
+                        <a href="/profile"
+                           class="bg-teal-600 text-white font-bold py-2 px-4 rounded flex items-center justify-between gap-2 rounded-xl">
+                            <i data-lucide="user" class="text-white h-5 w-5"></i><span>Профиль</span>
+                        </a>
+                    <#else>
+                        <a href="/auth/login"
+                           class="bg-teal-600 text-white font-bold py-2 px-4 rounded flex items-center justify-between gap-2 rounded-xl">
+                            <i data-lucide="user" class="text-white h-5 w-5"></i><span>Войти</span>
+                        </a>
+                    </#if>
+                </div>
             </div>
         </div>
     </header>
@@ -57,7 +97,7 @@
                         <ul class="space-y-2">
                             <li><a href="#" class="text-gray-600 hover:text-teal-600">О компании</a></li>
                             <li><a href="#" class="text-gray-600 hover:text-teal-600">Работа у нас</a></li>
-                            <li><a href="#" class="text-gray-600 hover:text-teal-600">Рестораны</a></li>
+                            <li><a href="/restaurants" class="text-gray-600 hover:text-teal-600">Рестораны</a></li>
                         </ul>
                     </div>
 
@@ -83,4 +123,11 @@
     </script>
     </body>
     </html>
+</#macro>
+
+<#macro csrf>
+    <#if _csrf??>
+        <input type="hidden" name="${(_csrf.parameterName)!'csrf-param-name'}"
+               value="${(_csrf.token)!'csrf-token'}"/>
+    </#if>
 </#macro>

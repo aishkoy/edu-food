@@ -71,7 +71,8 @@
                                 <option value="">Все категории</option>
                                 <#if categories??>
                                     <#list categories as category>
-                                        <option value="${category.id}" <#if categoryId?? && categoryId == category.id>selected</#if>>${category.name}</option>
+                                        <option value="${category.id}"
+                                                <#if categoryId?? && categoryId == category.id>selected</#if>>${category.name}</option>
                                     </#list>
                                 </#if>
                             </select>
@@ -85,7 +86,8 @@
                                 <option value="">Все рестораны</option>
                                 <#if restaurants??>
                                     <#list restaurants as restaurant>
-                                        <option value="${restaurant.id}" <#if restaurantId?? && restaurantId == restaurant.id>selected</#if>>${restaurant.name}</option>
+                                        <option value="${restaurant.id}"
+                                                <#if restaurantId?? && restaurantId == restaurant.id>selected</#if>>${restaurant.name}</option>
                                     </#list>
                                 </#if>
                             </select>
@@ -105,12 +107,14 @@
                             <label for="sortDirection" class="block text-gray-700 mb-2">Порядок сортировки</label>
                             <div class="flex gap-4">
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="sortDirection" value="asc" <#if sortDirection == "asc">checked</#if>
+                                    <input type="radio" name="sortDirection" value="asc"
+                                           <#if sortDirection == "asc">checked</#if>
                                            class="form-radio text-teal-600">
                                     <span class="ml-2">По возрастанию</span>
                                 </label>
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="sortDirection" value="desc" <#if sortDirection == "desc">checked</#if>
+                                    <input type="radio" name="sortDirection" value="desc"
+                                           <#if sortDirection == "desc">checked</#if>
                                            class="form-radio text-teal-600">
                                     <span class="ml-2">По убыванию</span>
                                 </label>
@@ -147,36 +151,30 @@
                     <!-- Сетка продуктов -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <#list products.content as product>
-                            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all">
-                                <a href="/products/${product.id}">
-                                    <img src="/api/products/${product.id}/image" alt="${product.name}"
-                                         class="w-full h-48 object-cover">
-                                </a>
-                                <div class="p-4">
-                                    <div class="flex justify-between items-start">
-                                        <a href="/products/${product.id}">
-                                            <h3 class="font-semibold text-lg hover:text-teal-600 transition">${product.name}</h3>
-                                        </a>
-                                        <span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full">
-                                            ${product.category.name}
-                                        </span>
+                            <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 transition duration-300 flex flex-col h-full">
+                                <div class="relative">
+                                    <img src="/api/products/${product.id}/image" alt="${product.name}" class="w-full h-48 object-cover">
+                                    <div class="absolute top-2 right-2 bg-white bg-opacity-75 rounded-full px-3 py-1">
+                                        <span class="text-xs font-medium text-gray-800 uppercase">${product.category.name}</span>
+                                    </div>
+                                </div>
+                                <div class="p-5 flex flex-col flex-grow">
+                                    <div class="mb-2">
+                                        <h3 class="text-xl font-semibold text-gray-800 hover:text-teal-600 transition">${product.name}</h3>
                                     </div>
 
-                                    <a href="/products/restaurants/${product.restaurant.id}" class="text-gray-600 text-sm hover:text-teal-600 transition">
-                                        ${product.restaurant.name}
-                                    </a>
+                                    <div class="flex-grow mb-4">
+                                        <p class="text-gray-600 text-sm overflow-hidden line-clamp-3 h-8">${product.description!''}</p>
+                                        <a href="/restaurants/${product.restaurant.id}" class="block mt-2 text-sm text-gray-500 hover:text-teal-600 transition">${product.restaurant.name}</a>
+                                    </div>
 
-                                    <p class="text-gray-600 mt-2 text-sm line-clamp-2 h-10">${product.description!''}</p>
-
-                                    <div class="flex justify-between items-center mt-4">
-                                        <span class="text-gray-900 font-bold text-lg">${product.price} сом</span>
-
-                                        <form action="/cart" method="post" class="flex items-center">
+                                    <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                                        <span class="text-lg font-bold text-gray-900">${product.price} сом</span>
+                                        <form action="/cart" method="post" class="flex justify-end">
                                             <@layout.csrf/>
                                             <input type="hidden" name="productId" value="${product.id}">
                                             <input type="hidden" name="quantity" value="1">
-                                            <button type="submit"
-                                                    class="bg-teal-600 text-white p-2 rounded-full hover:bg-teal-700 transition">
+                                            <button type="submit" class="bg-teal-600 text-white p-3 rounded-full hover:bg-teal-700 transition duration-200">
                                                 <i data-lucide="shopping-cart" class="h-5 w-5"></i>
                                             </button>
                                         </form>
@@ -227,7 +225,8 @@
                             <i data-lucide="search-x" class="h-16 w-16 text-gray-400"></i>
                         </div>
                         <h2 class="text-2xl font-bold text-gray-800 mb-4">Продукты не найдены</h2>
-                        <p class="text-gray-600 mb-6">Попробуйте изменить параметры фильтрации или сбросить все фильтры.</p>
+                        <p class="text-gray-600 mb-6">Попробуйте изменить параметры фильтрации или сбросить все
+                            фильтры.</p>
                         <button type="button" id="resetFiltersEmpty"
                                 class="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition">
                             Сбросить все фильтры
@@ -239,40 +238,54 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const priceRange = document.getElementById('priceRange');
             const minPriceInput = document.getElementById('minPrice');
             const maxPriceInput = document.getElementById('maxPrice');
 
-            if (minPriceInput.value && maxPriceInput.value) {
-                priceRange.value = (parseInt(minPriceInput.value) + parseInt(maxPriceInput.value)) / 2;
-            } else if (minPriceInput.value) {
-                priceRange.value = minPriceInput.value;
-            } else if (maxPriceInput.value) {
-                priceRange.value = maxPriceInput.value;
+            if (priceRange && minPriceInput && maxPriceInput) {
+                if (minPriceInput.value && maxPriceInput.value) {
+                    priceRange.value = (parseInt(minPriceInput.value) + parseInt(maxPriceInput.value)) / 2;
+                } else if (minPriceInput.value) {
+                    priceRange.value = minPriceInput.value;
+                } else if (maxPriceInput.value) {
+                    priceRange.value = maxPriceInput.value;
+                }
+
+                priceRange.addEventListener('input', function () {
+                    const value = parseInt(this.value);
+                    const min = Math.max(0, Math.floor(value * 0.8));
+                    const max = Math.ceil(value * 1.2);
+
+                    minPriceInput.value = min;
+                    maxPriceInput.value = max;
+                });
             }
-
-            priceRange.addEventListener('input', function() {
-                const value = parseInt(this.value);
-                const min = Math.max(0, Math.floor(value * 0.8));
-                const max = Math.ceil(value * 1.2);
-
-                minPriceInput.value = min;
-                maxPriceInput.value = max;
-            });
 
             const resetFiltersBtn = document.getElementById('resetFilters');
             const resetFiltersEmptyBtn = document.getElementById('resetFiltersEmpty');
 
             function resetFilters() {
-                document.getElementById('name').value = '';
-                document.getElementById('minPrice').value = '';
-                document.getElementById('maxPrice').value = '';
-                document.getElementById('categoryId').value = '';
-                document.getElementById('restaurantId').value = '';
-                document.getElementById('sortBy').value = 'name';
-                document.querySelector('input[name="sortDirection"][value="asc"]').checked = true;
-                document.getElementById('filterForm').submit();
+                const nameInput = document.getElementById('name');
+                if (nameInput) nameInput.value = '';
+
+                if (minPriceInput) minPriceInput.value = '';
+                if (maxPriceInput) maxPriceInput.value = '';
+
+                const categoryIdSelect = document.getElementById('categoryId');
+                if (categoryIdSelect) categoryIdSelect.value = '';
+
+                const restaurantIdSelect = document.getElementById('restaurantId');
+                if (restaurantIdSelect) restaurantIdSelect.value = '';
+
+                const sortBySelect = document.getElementById('sortBy');
+                if (sortBySelect) sortBySelect.value = 'name';
+
+                const sortDirectionRadio = document.querySelector('input[name="sortDirection"][value="asc"]');
+                if (sortDirectionRadio) sortDirectionRadio.checked = true;
+
+                const filterForm = document.getElementById('filterForm');
+                if (filterForm) filterForm.submit();
             }
 
             if (resetFiltersBtn) {
@@ -284,18 +297,25 @@
             }
 
             const cartForms = document.querySelectorAll('form[action="/cart"]');
+
             cartForms.forEach(form => {
-                form.addEventListener('submit', function() {
+                form.addEventListener('submit', function(e) {
                     sessionStorage.setItem('scrollPosition', window.scrollY);
-                    sessionStorage.setItem('currentFilters', new URLSearchParams(window.location.search).toString());
+
+                    if (!form.querySelector('input[name="redirectUrl"]')) {
+                        const redirectInput = document.createElement('input');
+                        redirectInput.type = 'hidden';
+                        redirectInput.name = 'redirectUrl';
+                        redirectInput.value = window.location.pathname + window.location.search;
+                        form.appendChild(redirectInput);
+                    }
                 });
             });
 
-            if (sessionStorage.getItem('scrollPosition') &&
-                sessionStorage.getItem('currentFilters') === new URLSearchParams(window.location.search).toString()) {
-                window.scrollTo(0, sessionStorage.getItem('scrollPosition'));
+            const scrollPosition = sessionStorage.getItem('scrollPosition');
+            if (scrollPosition !== null) {
+                window.scrollTo(0, parseInt(scrollPosition));
                 sessionStorage.removeItem('scrollPosition');
-                sessionStorage.removeItem('currentFilters');
             }
         });
     </script>

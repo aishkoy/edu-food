@@ -23,7 +23,8 @@
                     <a href="#menu" class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition">
                         Посмотреть меню
                     </a>
-                    <a href="/products?restaurantId=${restaurant.id}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">
+                    <a href="/products?restaurantId=${restaurant.id}"
+                       class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">
                         Все блюда в каталоге
                     </a>
                 </div>
@@ -45,15 +46,11 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     <#list products.content as product>
                         <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all">
-                            <a href="/products/${product.id}">
-                                <img src="/api/products/${product.id}/image" alt="${product.name}"
-                                     class="w-full h-48 object-cover">
-                            </a>
+                            <img src="/api/products/${product.id}/image" alt="${product.name}"
+                                 class="w-full h-48 object-cover">
                             <div class="p-4">
                                 <div class="flex justify-between items-start">
-                                    <a href="/products/${product.id}">
-                                        <h3 class="font-semibold text-lg hover:text-teal-600 transition">${product.name}</h3>
-                                    </a>
+                                    <h3 class="font-semibold text-lg hover:text-teal-600 transition">${product.name}</h3>
                                     <span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full">
                                         ${product.category.name}
                                     </span>
@@ -130,21 +127,26 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const cartForms = document.querySelectorAll('form[action="/cart"]');
-            cartForms.forEach(form => {
-                form.addEventListener('submit', function() {
-                    sessionStorage.setItem('restaurantDetailScrollPosition', window.scrollY);
-                    sessionStorage.setItem('restaurantDetailId', '${restaurant.id}');
-                });
-            });
+        const cartForms = document.querySelectorAll('form[action="/cart"]');
 
-            if (sessionStorage.getItem('restaurantDetailScrollPosition') &&
-                sessionStorage.getItem('restaurantDetailId') === '${restaurant.id}') {
-                window.scrollTo(0, sessionStorage.getItem('restaurantDetailScrollPosition'));
-                sessionStorage.removeItem('restaurantDetailScrollPosition');
-                sessionStorage.removeItem('restaurantDetailId');
-            }
+        cartForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                sessionStorage.setItem('scrollPosition', window.scrollY);
+
+                if (!form.querySelector('input[name="redirectUrl"]')) {
+                    const redirectInput = document.createElement('input');
+                    redirectInput.type = 'hidden';
+                    redirectInput.name = 'redirectUrl';
+                    redirectInput.value = window.location.pathname + window.location.search;
+                    form.appendChild(redirectInput);
+                }
+            });
         });
+
+        const scrollPosition = sessionStorage.getItem('scrollPosition');
+        if (scrollPosition !== null) {
+            window.scrollTo(0, parseInt(scrollPosition));
+            sessionStorage.removeItem('scrollPosition');
+        }
     </script>
 </@layout.layout>
