@@ -86,15 +86,30 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> getUserAvatar(Long userId) {
         UserDto userDto = getUserById(userId);
 
-        if (userDto.getAvatar() == null || userDto.getAvatar().isEmpty()) {
+        String filename = userDto.getAvatar();
+        if(filename == null || filename.isBlank()){
             return FileUtil.getStaticFile("default_avatar.jpg", "images/", MediaType.IMAGE_JPEG);
         }
 
-        String filename = userDto.getAvatar();
         String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         MediaType mediaType = extension.equals("png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
 
-        return FileUtil.getOutputFile(filename, "images/", mediaType);
+        try{
+            return FileUtil.getOutputFile(filename, "images/", mediaType);
+        } catch (NoSuchElementException e){
+            return FileUtil.getStaticFile("default_avatar.jpg", "images/", MediaType.IMAGE_JPEG);
+        }
+    }
+
+    @Override
+    public void updateUser(Long userId, UserDto userDto){
+        UserDto user = getUserById(userId);
+        user.setName(userDto.getName());
+        user.setSurname(userDto.getSurname());
+        user.setAddress(userDto.getAddress());
+
+        log.info("Изменение данных пользователя: {}", user.getId());
+        userRepository.save(userMapper.toEntity(user));
     }
 
     @Override

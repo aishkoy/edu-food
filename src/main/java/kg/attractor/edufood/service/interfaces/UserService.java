@@ -17,5 +17,7 @@ public interface UserService {
 
     UserDto getUserByEmail(String email);
 
+    void updateUser(Long userId, UserDto userDto);
+
     UserDto getAuthUser();
 }
