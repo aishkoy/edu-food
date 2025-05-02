@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,4 +32,8 @@ public class OrderProduct {
     @Column(name = "quantity",
             nullable = false)
     Integer quantity;
+
+    @Column(name = "amount",
+            nullable = false)
+    BigDecimal amount;
 }

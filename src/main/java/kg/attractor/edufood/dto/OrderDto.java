@@ -5,6 +5,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,5 +26,11 @@ public class OrderDto {
     BigDecimal totalAmount = BigDecimal.ZERO;
 
     @Builder.Default
+    Integer totalQuantity = 0;
+
+    @Builder.Default
     Timestamp date = null;
+
+    @Builder.Default
+    List<OrderProductDto> orderProducts = new ArrayList<>();
 }

@@ -2,11 +2,12 @@
 
 create table orders
 (
-    id           long auto_increment primary key not null,
-    user_id      long,
-    status_id    long                            not null,
-    total_amount decimal(10, 2)                  not null,
-    date         timestamp,
+    id             long auto_increment primary key not null,
+    user_id        long,
+    status_id      long                            not null,
+    total_amount   decimal(10, 2)                  not null,
+    total_quantity integer                         not null,
+    date           timestamp,
 
     constraint fk_status_id
         foreign key (status_id)

@@ -37,6 +37,10 @@ public class Order {
             nullable = false)
     BigDecimal totalAmount;
 
+    @Column(name = "total_quantity",
+            nullable = false)
+    Integer totalQuantity;
+
     @Column(name = "date")
     Timestamp date;
 
