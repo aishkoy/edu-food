@@ -39,4 +39,17 @@ public class CartController {
 
         return "profile/cart";
     }
+
+    @PostMapping("/update")
+    public String updateCartQuantity(@RequestParam Long productId,
+                                     @RequestParam Integer quantityChange,
+                                     @RequestParam(required = false) String redirectUrl,
+                                     HttpSession session) {
+        cartService.updateCartItemQuantity(productId, quantityChange, session);
+
+        if (redirectUrl != null && !redirectUrl.isBlank()) {
+            return "redirect:" + redirectUrl;
+        }
+        return "redirect:/cart";
+    }
 }

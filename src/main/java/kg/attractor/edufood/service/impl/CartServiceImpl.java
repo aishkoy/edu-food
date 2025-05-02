@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Iterator;
 
 @Slf4j
 @Service
@@ -23,8 +24,6 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void addToCart(Long productId, Integer quantity, HttpSession session) {
-        log.info("Начало добавления продукта в корзину: productId={}, quantity={}", productId, quantity);
-
         OrderDto cart = getOrCreateCart(session);
         ProductDto productDto = productService.getProductById(productId);
         validateQuantity(quantity);
@@ -43,9 +42,40 @@ public class CartServiceImpl implements CartService {
                 : createNewCart(session);
     }
 
-    private OrderDto createNewCart(HttpSession session) {
-        log.info("Корзина не найдена. Создается новая корзина.");
+    @Override
+    public OrderDto updateCartItemQuantity(Long productId, Integer quantityChange, HttpSession session) {
+        OrderDto cart = getOrCreateCart(session);
+        OrderProductDto cartItem = findExistingCartItem(cart, productId);
 
+        if (cartItem == null) {
+            return cart;
+        }
+
+        int newQuantity = cartItem.getQuantity() + quantityChange;
+
+        if (newQuantity <= 0) {
+            log.info("Удаление продукта с ID {} из корзины, т.к. новое количество <= 0", productId);
+            Iterator<OrderProductDto> iterator = cart.getOrderProducts().iterator();
+            while (iterator.hasNext()) {
+                OrderProductDto item = iterator.next();
+                if (item.getProduct().getId().equals(productId)) {
+                    iterator.remove();
+                    break;
+                }
+            }
+        } else {
+            cartItem.setQuantity(newQuantity);
+            cartItem.setAmount(cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(newQuantity)));
+            log.info("Обновлено количество для продукта: productId={}, new quantity={}, amount={}",
+                    productId, newQuantity, cartItem.getAmount());
+        }
+
+        recalculateCart(cart);
+        updateSessionCart(session, cart);
+        return cart;
+    }
+
+    private OrderDto createNewCart(HttpSession session) {
         OrderStatusDto status = orderStatusService.getOrderStatusByName("Корзина");
         OrderDto newCart = OrderDto.builder()
                 .status(status)
@@ -56,7 +86,6 @@ public class CartServiceImpl implements CartService {
 
     private void validateQuantity(Integer quantity) {
         if (quantity == null || quantity <= 0) {
-            log.warn("Недопустимое количество: {}. Количество должно быть больше 0.", quantity);
             throw new IllegalArgumentException("Количество должно быть больше 0.");
         }
         log.info("Количество валидно: {}", quantity);
@@ -106,8 +135,6 @@ public class CartServiceImpl implements CartService {
     }
 
     private void recalculateCart(OrderDto cart) {
-        log.info("Перерасчет общей стоимости и общего количества корзины.");
-
         BigDecimal totalPrice = calculateTotalPrice(cart);
         int totalQuantity = calculateTotalQuantity(cart);
 

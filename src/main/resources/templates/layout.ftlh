@@ -42,40 +42,57 @@
     </head>
     <body class="bg-gray-50 min-h-screen flex flex-col">
 
-    <header class="bg-amber-300 py-6">
+    <header class="bg-amber-300 py-6 shadow">
         <div class="container px-4 md:px-24 mx-auto">
             <div class="md:mx-20 flex justify-between items-center">
-                <a href="/" class="font-bold text-teal-600 text-4xl">
+                <a href="/" class="font-extrabold text-teal-700 text-4xl hover:text-teal-800 transition duration-200">
                     Edu Food
                 </a>
-                <div class="flex gap-8 items-center">
+
+                <div class="flex items-center gap-6">
+                    <a href="/products"
+                       class="text-teal-600 font-semibold px-5 py-2 rounded-full hover:bg-teal-100 transition duration-200">
+                        Меню
+                    </a>
+
+                    <a href="/restaurants"
+                       class="text-teal-600 font-semibold px-5 py-2 rounded-full hover:bg-teal-100 transition duration-200">
+                        Рестораны
+                    </a>
+                </div>
+
+                <div class="flex gap-6 items-center">
                     <a href="/cart" class="relative bg-white rounded-full p-3 shadow-md hover:shadow-lg transition-all">
                         <i data-lucide="shopping-cart" class="h-6 w-6 text-teal-600"></i>
                         <#if cart??>
-                            <span class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                            <span
+                                    class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                             ${cart.totalQuantity}
-                            </span>
+                        </span>
                         <#else>
-                            <span class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                            <span
+                                    class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                             0
-                             </span>
+                        </span>
                         </#if>
                     </a>
+
                     <#if currentUser??>
                         <a href="/profile"
-                           class="bg-teal-600 text-white font-bold py-2 px-4 rounded flex items-center justify-between gap-2 rounded-xl">
-                            <i data-lucide="user" class="text-white h-5 w-5"></i><span>Профиль</span>
+                           class="bg-teal-600 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 hover:bg-teal-700 transition">
+                            <i data-lucide="user" class="h-5 w-5"></i><span>Профиль</span>
                         </a>
                     <#else>
                         <a href="/auth/login"
-                           class="bg-teal-600 text-white font-bold py-2 px-4 rounded flex items-center justify-between gap-2 rounded-xl">
-                            <i data-lucide="user" class="text-white h-5 w-5"></i><span>Войти</span>
+                           class="bg-teal-600 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 hover:bg-teal-700 transition">
+                            <i data-lucide="user" class="h-5 w-5"></i><span>Войти</span>
                         </a>
                     </#if>
                 </div>
             </div>
         </div>
     </header>
+
 
     <main>
         <div class="text-center mx-auto">
