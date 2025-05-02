@@ -15,7 +15,8 @@
                         <#list cart.orderProducts as productItem>
                             <div class="flex items-center justify-between py-4 border-b">
                                 <div class="flex items-center">
-                                    <img src="/api/products/${productItem.product.id}/image" alt="${productItem.product.name}"
+                                    <img src="/api/products/${productItem.product.id}/image"
+                                         alt="${productItem.product.name}"
                                          class="w-16 h-16 object-cover rounded-lg mr-4">
                                     <div class="text-left">
                                         <h3 class="font-medium">${productItem.product.name}</h3>
@@ -67,31 +68,6 @@
                 </div>
             </div>
 
-            <!-- Блок оформления заказа -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-                <div class="p-6">
-                    <h2 class="text-xl font-semibold mb-4">Адрес доставки</h2>
-
-                    <form>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-gray-700 text-sm font-medium mb-2">Улица</label>
-                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Введите улицу">
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-medium mb-2">Дом/квартира</label>
-                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500" placeholder="Дом, квартира">
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-medium mb-2">Примечание к заказу</label>
-                            <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500" rows="3" placeholder="Особые пожелания к заказу или доставке"></textarea>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
             <!-- Действия пользователя -->
             <div class="flex justify-between">
                 <a href="/" class="flex items-center text-teal-600 hover:text-teal-700">
@@ -99,9 +75,15 @@
                     Продолжить покупки
                 </a>
 
-                <button class="bg-teal-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-teal-700 transition-colors">
-                    Оформить заказ
-                </button>
+                <div class="checkout-section">
+                    <form action="/cart/checkout" method="post">
+                        <@layout.csrf/>
+                        <button type="submit"
+                                class="bg-teal-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-teal-700 transition-colors">
+                            Оформить заказ
+                        </button>
+                    </form>
+                </div>
             </div>
         <#else>
             <div class="bg-white rounded-lg shadow-md p-8 text-center">
@@ -114,7 +96,8 @@
                 <h2 class="text-2xl font-bold text-gray-800 mb-4">Корзина пуста</h2>
                 <p class="text-gray-600 mb-6">Добавьте товары из меню ресторанов, чтобы сделать заказ</p>
 
-                <a href="/" class="bg-teal-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-teal-700 transition-colors inline-flex items-center">
+                <a href="/"
+                   class="bg-teal-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-teal-700 transition-colors inline-flex items-center">
                     <i data-lucide="arrow-left" class="h-5 w-5 mr-2"></i>
                     Перейти к меню
                 </a>
@@ -123,7 +106,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const scrollPosition = sessionStorage.getItem('scrollPosition');
             if (scrollPosition !== null) {
                 window.scrollTo(0, parseInt(scrollPosition));
@@ -132,7 +115,7 @@
 
             const quantityForms = document.querySelectorAll('.quantity-form');
             quantityForms.forEach(form => {
-                form.addEventListener('submit', function() {
+                form.addEventListener('submit', function () {
                     sessionStorage.setItem('scrollPosition', window.scrollY);
                 });
             });

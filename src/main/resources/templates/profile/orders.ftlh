@@ -60,17 +60,10 @@
                             <form method="get" action="/profile/orders" class="mb-6">
                                 <div class="flex flex-col md:flex-row gap-4 justify-between">
                                     <div class="flex flex-col sm:flex-row gap-4">
-                                        <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                            <option value="" <#if !status??>selected</#if>>Все статусы</option>
-                                            <#list orderStatuses as statusOption>
-                                                <option value="${statusOption.id}" <#if status?? && status == statusOption.id>selected</#if>>${statusOption.name}</option>
-                                            </#list>
-                                        </select>
-
                                         <select name="sortBy" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
                                             <option value="date" <#if sortBy == 'date'>selected</#if>>По дате</option>
-                                            <option value="amount" <#if sortBy == 'amount'>selected</#if>>По сумме</option>
-                                            <option value="quantity" <#if sortBy == 'quantity'>selected</#if>>По количеству</option>
+                                            <option value="totalAmount" <#if sortBy == 'totalAmount'>selected</#if>>По цене</option>
+                                            <option value="totalQuantity" <#if sortBy == 'totalQuantity'>selected</#if>>По количеству</option>
                                         </select>
 
                                         <select name="sortDirection" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">

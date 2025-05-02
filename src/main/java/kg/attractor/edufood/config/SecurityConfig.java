@@ -35,13 +35,15 @@ public class SecurityConfig {
                         .permitAll())
                 .logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                        .invalidateHttpSession(false)
+                        .clearAuthentication(true)
                         .permitAll())
 
                 .authorizeHttpRequests(
                         authorizeRequests -> authorizeRequests
                                 .requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/api/**").permitAll()
-                                .requestMatchers("/profile/**").authenticated()
+                                .requestMatchers("/profile/**", "/cart/checkout").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/").permitAll()
                                 .anyRequest().permitAll()
                 );
