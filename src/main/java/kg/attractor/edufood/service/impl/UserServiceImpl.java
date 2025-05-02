@@ -1,5 +1,6 @@
 package kg.attractor.edufood.service.impl;
 
+import kg.attractor.edufood.dto.EditUserDto;
 import kg.attractor.edufood.dto.UserDto;
 import kg.attractor.edufood.entity.User;
 import kg.attractor.edufood.exception.nsee.UserNotFoundException;
@@ -28,7 +29,12 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    
+
+    @Override
+    public EditUserDto mapToEditUser(UserDto dto){
+        return userMapper.toEditDto(dto);
+    }
+
     @Override
     public UserDto register(UserDto dto){
         log.info("Нормализация полей");
@@ -102,7 +108,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(Long userId, UserDto userDto){
+    public void updateUser(Long userId, EditUserDto userDto){
         UserDto user = getUserById(userId);
         user.setName(userDto.getName());
         user.setSurname(userDto.getSurname());

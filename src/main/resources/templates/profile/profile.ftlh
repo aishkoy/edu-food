@@ -1,4 +1,5 @@
 <#import "../layout.ftlh" as layout>
+<#import "/spring.ftl" as spring>
 <#macro navItem href icon label currentSection sectionName>
     <#assign isActive = (currentSection == sectionName)>
     <a href="${href}" class="block px-6 py-4 hover:bg-gray-50 transition flex items-center font-medium
@@ -25,11 +26,13 @@
                                          alt="Аватар пользователя"
                                          class="w-full h-full object-cover">
 
-                                    <label for="avatar-upload" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                                    <label for="avatar-upload"
+                                           class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
                                         <i data-lucide="camera" class="h-8 w-8 text-white"></i>
                                     </label>
                                 </div>
-                                <input type="file" id="avatar-upload" name="avatar" accept="image/*" class="hidden" onchange="this.form.submit()">
+                                <input type="file" id="avatar-upload" name="avatar" accept="image/*" class="hidden"
+                                       onchange="this.form.submit()">
                             </form>
                         </div>
                         <h2 class="text-xl font-semibold">${user.name} ${user.surname!''}</h2>
@@ -45,7 +48,8 @@
                                 <@navItem href="/profile/orders" icon="shopping-bag" label="Мои заказы" currentSection=section sectionName="orders" />
                             </li>
                             <li>
-                                <a href="/logout" class="block px-6 py-4 hover:bg-gray-50 transition flex items-center text-red-500 font-medium">
+                                <a href="/logout"
+                                   class="block px-6 py-4 hover:bg-gray-50 transition flex items-center text-red-500 font-medium">
                                     <i data-lucide="log-out" class="h-5 w-5 mr-3"></i>
                                     <span>Выйти</span>
                                 </a>
@@ -85,26 +89,20 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div>
                                     <label for="name" class="block text-gray-700 text-sm font-medium mb-2">Имя</label>
-                                    <input type="text" id="name" name="name" value="${user.name}" required
-                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <@spring.formInput "userDto.name", 'class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"', "text"/>
+                                    <@spring.showErrors '<br>', 'text-red-500 text-xs mt-1'/>
                                 </div>
                                 <div>
                                     <label for="surname" class="block text-gray-700 text-sm font-medium mb-2">Фамилия</label>
-                                    <input type="text" id="surname" name="surname" value="${user.surname!''}"
-                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <@spring.formInput "userDto.surname", 'class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"', "text"/>
+                                    <@spring.showErrors '<br>', 'text-red-500 text-xs mt-1'/>
                                 </div>
-                            </div>
-
-                            <div class="mb-6">
-                                <label for="email" class="block text-gray-700 text-sm font-medium mb-2">Email</label>
-                                <input type="email" id="email" name="email" value="${user.email}" required
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
                             </div>
 
                             <div class="mb-6">
                                 <label for="address" class="block text-gray-700 text-sm font-medium mb-2">Адрес</label>
-                                <textarea id="address" name="address" rows="3" required
-                                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">${user.address!''}</textarea>
+                                <@spring.formTextarea "userDto.address", 'class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500" rows="3"'/>
+                                <@spring.showErrors '<br>', 'text-red-500 text-xs mt-1'/>
                             </div>
 
                             <div class="flex justify-end">
@@ -123,7 +121,8 @@
                             <i data-lucide="shopping-bag" class="h-5 w-5 mr-2 text-teal-600"></i>
                             Последние заказы
                         </h2>
-                        <a href="/profile/orders" class="text-teal-600 hover:text-teal-700 font-medium flex items-center">
+                        <a href="/profile/orders"
+                           class="text-teal-600 hover:text-teal-700 font-medium flex items-center">
                             <span>Все заказы</span>
                             <i data-lucide="chevron-right" class="h-5 w-5 ml-1"></i>
                         </a>
@@ -163,11 +162,13 @@
                                             </div>
                                             <div>
                                                 <#if order.status.name == 'Корзина'>
-                                                    <a href="/cart" class="text-teal-600 hover:text-teal-700 font-medium">
+                                                    <a href="/cart"
+                                                       class="text-teal-600 hover:text-teal-700 font-medium">
                                                         Перейти в корзину
                                                     </a>
                                                 <#else>
-                                                    <a href="/profile/orders/${order.id}" class="text-teal-600 hover:text-teal-700 font-medium">
+                                                    <a href="/profile/orders/${order.id}"
+                                                       class="text-teal-600 hover:text-teal-700 font-medium">
                                                         Подробнее
                                                     </a>
                                                 </#if>
@@ -183,7 +184,8 @@
                                 </div>
                                 <h3 class="text-xl font-semibold text-gray-800 mb-2">У вас еще нет заказов</h3>
                                 <p class="text-gray-600 mb-4">Начните с просмотра меню наших ресторанов.</p>
-                                <a href="/products" class="bg-teal-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-teal-700 transition-colors inline-block">
+                                <a href="/products"
+                                   class="bg-teal-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-teal-700 transition-colors inline-block">
                                     Перейти к меню
                                 </a>
                             </div>

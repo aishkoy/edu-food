@@ -1,5 +1,7 @@
 package kg.attractor.edufood.controller.mvc;
 
+import jakarta.validation.Valid;
+import kg.attractor.edufood.dto.EditUserDto;
 import kg.attractor.edufood.dto.OrderDto;
 import kg.attractor.edufood.dto.UserDto;
 import kg.attractor.edufood.service.interfaces.OrderService;
@@ -13,11 +15,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -33,7 +37,9 @@ public class ProfileController {
     @GetMapping
     public String getProfilePage(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         UserDto user = userService.getUserByEmail(userDetails.getUsername());
+        EditUserDto userDto = userService.mapToEditUser(user);
         model.addAttribute("user", user);
+        model.addAttribute("userDto", userDto);
         model.addAttribute("section", "profile");
 
         List<OrderDto> recentOrders = null;
@@ -48,8 +54,23 @@ public class ProfileController {
 
     @PostMapping("/update")
     public String updateProfile(
-            @ModelAttribute UserDto userDto,
+            @Valid @ModelAttribute("userDto") EditUserDto userDto,
+            BindingResult bindingResult,
+            Model model,
             RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            UserDto user = userService.getAuthUser();
+            List<OrderDto> recentOrders = Collections.emptyList();
+            try {
+                recentOrders = orderService.getRecentOrdersByUserId(user.getId());
+            } catch (NoSuchElementException e) {
+            }
+            model.addAttribute("recentOrders", recentOrders);
+            model.addAttribute("user", user);
+            model.addAttribute("section", "profile");
+            return "profile/profile";
+        }
 
         try {
             UserDto user = userService.getAuthUser();

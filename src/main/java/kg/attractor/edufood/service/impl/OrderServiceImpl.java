@@ -6,6 +6,7 @@ import kg.attractor.edufood.exception.nsee.OrderNotFoundException;
 import kg.attractor.edufood.mapper.OrderMapper;
 import kg.attractor.edufood.repository.OrderRepository;
 import kg.attractor.edufood.service.interfaces.OrderService;
+import kg.attractor.edufood.service.interfaces.OrderStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
