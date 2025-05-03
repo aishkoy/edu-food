@@ -26,6 +26,4 @@ public interface CartService {
     boolean hasGuestCart(HttpServletRequest request);
 
     OrderDto getGuestCart(HttpServletRequest request);
-
-    void clearGuestCart(HttpServletResponse response);
 }

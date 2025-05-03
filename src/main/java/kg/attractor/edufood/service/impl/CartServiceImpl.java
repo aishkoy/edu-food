@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kg.attractor.edufood.dto.*;
 import kg.attractor.edufood.entity.Order;
+import kg.attractor.edufood.entity.OrderProduct;
+import kg.attractor.edufood.entity.OrderStatus;
 import kg.attractor.edufood.service.interfaces.*;
 import kg.attractor.edufood.util.CookieUtils;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -20,7 +22,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
     private static final String GUEST_CART_COOKIE = "guest_cart";
-    private static final String USER_CART_COOKIE_PREFIX = "user_cart_";
     private static final int COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
     private static final String COOKIE_PATH = "/";
 
@@ -32,23 +33,64 @@ public class CartServiceImpl implements CartService {
     private final CookieUtils cookieUtils;
 
     @Override
+    @Transactional
     public void addToCart(Long productId, Integer quantity, HttpServletRequest request, HttpServletResponse response) {
-        OrderDto cart = getOrCreateCart(request, response);
+        UserDto user = userService.getAuthUser();
         ProductDto productDto = productService.getProductById(productId);
         validateQuantity(quantity);
 
-        addOrUpdateCartItem(cart, productDto, quantity);
-        updateCart(cart, response);
+        if (user != null) {
+            addToCartInDb(user, productDto, quantity);
+        } else {
+            OrderDto guestCart = getOrCreateGuestCart(request, response);
+            addOrUpdateCartItem(guestCart, productDto, quantity);
+            updateGuestCart(guestCart, response);
+        }
 
-        log.info("Продукт успешно добавлен в корзину. Текущее состояние корзины: {}", cart);
+        log.info("Продукт успешно добавлен в корзину.");
     }
+
+    @Transactional
+    public void addToCartInDb(UserDto user, ProductDto productDto, Integer quantity) {
+        Order cart = orderService.getOrCreateDbCart(user);
+
+        Optional<OrderProduct> existingProductOpt = orderProductService.getByOrderIdAndProductId(
+                cart.getId(), productDto.getId());
+
+        if (existingProductOpt.isPresent()) {
+            OrderProduct existingProduct = existingProductOpt.get();
+            int newQuantity = existingProduct.getQuantity() + quantity;
+            BigDecimal newAmount = productDto.getPrice().multiply(BigDecimal.valueOf(newQuantity));
+
+            existingProduct.setQuantity(newQuantity);
+            existingProduct.setAmount(newAmount);
+            orderProductService.saveEntity(existingProduct);
+        } else {
+            OrderProductDto newProduct = OrderProductDto.builder()
+                    .orderId(cart.getId())
+                    .product(productDto)
+                    .quantity(quantity)
+                    .amount(productDto.getPrice().multiply(BigDecimal.valueOf(quantity)))
+                    .build();
+
+            orderProductService.save(newProduct);
+        }
+
+        recalculateDbCart(cart.getId());
+
+        log.info("Продукт успешно добавлен в корзину пользователя в БД: userId={}, productId={}",
+                user.getId(), productDto.getId());
+    }
+
+
 
     @Override
     public OrderDto getOrCreateCart(HttpServletRequest request, HttpServletResponse response) {
         UserDto user = userService.getAuthUser();
 
         if (user != null) {
-            return getOrCreateUserCart(user, request, response);
+            Order dbCart = orderService.getOrCreateDbCart(user);
+            return orderService.mapToDto(dbCart);
         } else {
             return getOrCreateGuestCart(request, response);
         }
@@ -56,17 +98,8 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public OrderDto getOrCreateUserCart(UserDto user, HttpServletRequest request, HttpServletResponse response) {
-        String userCartCookie = USER_CART_COOKIE_PREFIX + user.getId();
-        Optional<OrderDto> userCart = cookieUtils.getCookieValue(request, userCartCookie, OrderDto.class);
-
-        if (userCart.isPresent()) {
-            return userCart.get();
-        } else {
-            OrderDto newCart = createNewCart();
-            newCart.setUser(user);
-            cookieUtils.setCookieValue(response, userCartCookie, newCart, COOKIE_MAX_AGE, COOKIE_PATH);
-            return newCart;
-        }
+        Order dbCart = orderService.getOrCreateDbCart(user);
+        return orderService.mapToDto(dbCart);
     }
 
     private OrderDto getOrCreateGuestCart(HttpServletRequest request, HttpServletResponse response) {
@@ -83,119 +116,180 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public OrderDto updateCartItemQuantity(Long productId, Integer quantityChange,
                                            HttpServletRequest request, HttpServletResponse response) {
-        OrderDto cart = getOrCreateCart(request, response);
-        OrderProductDto cartItem = findExistingCartItem(cart, productId);
+        UserDto user = userService.getAuthUser();
 
-        if (cartItem == null) {
-            return cart;
-        }
-
-        int newQuantity = cartItem.getQuantity() + quantityChange;
-
-        if (newQuantity <= 0) {
-            log.info("Удаление продукта с ID {} из корзины, т.к. новое количество <= 0", productId);
-            Iterator<OrderProductDto> iterator = cart.getOrderProducts().iterator();
-            while (iterator.hasNext()) {
-                OrderProductDto item = iterator.next();
-                if (item.getProduct().getId().equals(productId)) {
-                    iterator.remove();
-                    break;
-                }
-            }
+        if (user != null) {
+            return updateCartItemQuantityInDb(user, productId, quantityChange);
         } else {
-            cartItem.setQuantity(newQuantity);
-            cartItem.setAmount(cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(newQuantity)));
-            log.info("Обновлено количество для продукта: productId={}, new quantity={}, amount={}",
-                    productId, newQuantity, cartItem.getAmount());
+            OrderDto guestCart = getOrCreateGuestCart(request, response);
+            OrderProductDto cartItem = findExistingCartItem(guestCart, productId);
+
+            if (cartItem == null) {
+                return guestCart;
+            }
+
+            int newQuantity = cartItem.getQuantity() + quantityChange;
+
+            if (newQuantity <= 0) {
+                log.info("Удаление продукта с ID {} из корзины, т.к. новое количество <= 0", productId);
+                guestCart.getOrderProducts().removeIf(item -> item.getProduct().getId().equals(productId));
+            } else {
+                cartItem.setQuantity(newQuantity);
+                cartItem.setAmount(cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(newQuantity)));
+                log.info("Обновлено количество для продукта: productId={}, new quantity={}, amount={}",
+                        productId, newQuantity, cartItem.getAmount());
+            }
+
+            recalculateCart(guestCart);
+            updateGuestCart(guestCart, response);
+            return guestCart;
+        }
+    }
+
+    @Transactional
+    public OrderDto updateCartItemQuantityInDb(UserDto user, Long productId, Integer quantityChange) {
+        Order dbCart = orderService.getOrCreateDbCart(user);
+        Optional<OrderProduct> productOpt = orderProductService.getByOrderIdAndProductId(
+                dbCart.getId(), productId);
+
+        if (productOpt.isPresent()) {
+            OrderProduct orderProduct = productOpt.get();
+            int newQuantity = orderProduct.getQuantity() + quantityChange;
+
+            if (newQuantity <= 0) {
+                orderProductService.deleteByOrderAndProduct(orderProduct.getOrder().getId(), orderProduct.getProduct().getId());
+            } else {
+                BigDecimal newAmount = orderProduct.getProduct().getPrice().multiply(BigDecimal.valueOf(newQuantity));
+                orderProduct.setQuantity(newQuantity);
+                orderProduct.setAmount(newAmount);
+                orderProductService.saveEntity(orderProduct);
+            }
+
+            recalculateDbCart(dbCart.getId());
         }
 
-        recalculateCart(cart);
-        updateCart(cart, response);
-        return cart;
+        return orderService.getOrderDtoById(dbCart.getId());
     }
 
     @Transactional
     @Override
     public void checkout(HttpServletRequest request, HttpServletResponse response, UserDto user) {
-        OrderDto cartDto = getOrCreateCart(request, response);
+        OrderStatusDto cartStatus = orderStatusService.getOrderStatusDtoByName("Корзина");
+        Optional<Order> cartOpt = orderService.getByUserIdAndStatusId(user.getId(), cartStatus.getId());
 
-        if (cartDto.getOrderProducts().isEmpty()) {
+        if (cartOpt.isEmpty()) {
             throw new IllegalStateException("Корзина пуста. Невозможно оформить заказ");
         }
 
-        OrderStatusDto status = orderStatusService.getOrderStatusByName("Оплачен");
-        OrderDto order = OrderDto.builder()
-                .totalAmount(cartDto.getTotalAmount())
-                .totalQuantity(cartDto.getTotalQuantity())
-                .status(status)
-                .user(user)
-                .build();
+        Order cart = cartOpt.get();
+        List<OrderProductDto> orderProducts = orderProductService.getAllByOrderId(cart.getId());
 
-        Order savedOrder = orderService.save(order);
-
-        for (OrderProductDto cartItemDto : cartDto.getOrderProducts()) {
-            OrderProductDto orderProduct = OrderProductDto.builder()
-                    .orderId(savedOrder.getId())
-                    .product(cartItemDto.getProduct())
-                    .amount(cartItemDto.getAmount())
-                    .quantity(cartItemDto.getQuantity())
-                    .build();
-
-            orderProductService.save(orderProduct);
+        if (orderProducts.isEmpty()) {
+            throw new IllegalStateException("Корзина пуста. Невозможно оформить заказ");
         }
 
-        clearCart(user, response);
-        log.info("Корзина очищена после оформления заказа");
+        OrderStatus paidStatus = orderStatusService.getOrderStatusByName("Оплачен");
+        cart.setStatus(paidStatus);
+        orderService.saveEntity(cart);
+
+        OrderDto newCart = OrderDto.builder()
+                .status(cartStatus)
+                .user(user)
+                .totalAmount(BigDecimal.ZERO)
+                .totalQuantity(0)
+                .build();
+
+        orderService.save(newCart);
+        log.info("Заказ успешно оформлен");
     }
 
     @Override
+    @Transactional
     public void mergeGuestCartWithUserCart(UserDto user, HttpServletRequest request, HttpServletResponse response) {
         Optional<OrderDto> guestCartOpt = cookieUtils.getCookieValue(request, GUEST_CART_COOKIE, OrderDto.class);
-        String userCartCookie = USER_CART_COOKIE_PREFIX + user.getId();
-        OrderDto userCart = getOrCreateUserCart(user, request, response);
 
-        if (guestCartOpt.isPresent()) {
+        if (guestCartOpt.isPresent() && !guestCartOpt.get().getOrderProducts().isEmpty()) {
             OrderDto guestCart = guestCartOpt.get();
-
+            Order userDbCart = orderService.getOrCreateDbCart(user);
 
             for (OrderProductDto guestItem : guestCart.getOrderProducts()) {
-                OrderProductDto existingItem = findExistingCartItem(userCart, guestItem.getProduct().getId());
+                Optional<OrderProduct> existingProductOpt = orderProductService.getByOrderIdAndProductId(
+                        userDbCart.getId(), guestItem.getProduct().getId());
 
-                if (existingItem != null) {
-                    existingItem.setQuantity(existingItem.getQuantity() + guestItem.getQuantity());
-                    existingItem.setAmount(existingItem.getProduct().getPrice()
-                            .multiply(BigDecimal.valueOf(existingItem.getQuantity())));
+                if (existingProductOpt.isPresent()) {
+                    OrderProduct existingProduct = existingProductOpt.get();
+                    int newQuantity = existingProduct.getQuantity() + guestItem.getQuantity();
+                    BigDecimal newAmount = existingProduct.getProduct().getPrice().multiply(BigDecimal.valueOf(newQuantity));
+
+                    existingProduct.setQuantity(newQuantity);
+                    existingProduct.setAmount(newAmount);
+                    orderProductService.saveEntity(existingProduct);
                 } else {
-                    userCart.getOrderProducts().add(guestItem);
+                    OrderProductDto newItem = OrderProductDto.builder()
+                            .orderId(userDbCart.getId())
+                            .product(guestItem.getProduct())
+                            .quantity(guestItem.getQuantity())
+                            .amount(guestItem.getAmount())
+                            .build();
+
+                    orderProductService.save(newItem);
                 }
             }
 
-            recalculateCart(userCart);
+            recalculateDbCart(userDbCart.getId());
 
-            cookieUtils.setCookieValue(response, userCartCookie, userCart, COOKIE_MAX_AGE, COOKIE_PATH);
+
             log.info("Корзины успешно объединены");
         }
     }
 
     @Override
+    @Transactional
     public void replaceUserCartWithGuestCart(UserDto user, HttpServletRequest request, HttpServletResponse response) {
         Optional<OrderDto> guestCartOpt = cookieUtils.getCookieValue(request, GUEST_CART_COOKIE, OrderDto.class);
 
-        if (guestCartOpt.isPresent()) {
+        if (guestCartOpt.isPresent() && !guestCartOpt.get().getOrderProducts().isEmpty()) {
             OrderDto guestCart = guestCartOpt.get();
-            String userCartCookie = USER_CART_COOKIE_PREFIX + user.getId();
 
+            try {
+                OrderStatusDto cartStatus = orderStatusService.getOrderStatusDtoByName("Корзина");
 
-            clearCart(user, response);
-            guestCart.setUser(user);
+                Optional<Order> existingCartOpt = orderService.getByUserIdAndStatusId(user.getId(), cartStatus.getId());
 
-            cookieUtils.setCookieValue(response, userCartCookie, guestCart, COOKIE_MAX_AGE, COOKIE_PATH);
-            log.info("Корзина пользователя заменена на гостевую корзину");
+                existingCartOpt.ifPresent(orderService::delete);
+
+                OrderDto newCartDto = OrderDto.builder()
+                        .status(cartStatus)
+                        .user(user)
+                        .totalAmount(BigDecimal.ZERO)
+                        .totalQuantity(0)
+                        .build();
+
+                Order newCart = orderService.save(newCartDto);
+
+                for (OrderProductDto guestItem : guestCart.getOrderProducts()) {
+                    OrderProductDto newItem = OrderProductDto.builder()
+                            .orderId(newCart.getId())
+                            .product(guestItem.getProduct())
+                            .quantity(guestItem.getQuantity())
+                            .amount(guestItem.getAmount())
+                            .build();
+
+                    orderProductService.save(newItem);
+                }
+
+                recalculateDbCart(newCart.getId());
+
+                log.info("Создана новая корзина пользователя из гостевой корзины, ID новой корзины: {}", newCart.getId());
+            } catch (Exception e) {
+                log.error("Ошибка при замене корзины пользователя: {}", e.getMessage(), e);
+                throw e;
+            }
         }
     }
-
     @Override
     public boolean hasGuestCart(HttpServletRequest request) {
         Optional<OrderDto> guestCart = cookieUtils.getCookieValue(request, GUEST_CART_COOKIE, OrderDto.class);
@@ -208,15 +302,12 @@ public class CartServiceImpl implements CartService {
                 .orElse(createNewCart());
     }
 
-    @Override
-    public void clearGuestCart(HttpServletResponse response) {
-        cookieUtils.deleteCookie(response, GUEST_CART_COOKIE, COOKIE_PATH);
-    }
-
     private OrderDto createNewCart() {
-        OrderStatusDto status = orderStatusService.getOrderStatusByName("Корзина");
+        OrderStatusDto status = orderStatusService.getOrderStatusDtoByName("Корзина");
         return OrderDto.builder()
                 .status(status)
+                .totalAmount(BigDecimal.ZERO)
+                .totalQuantity(0)
                 .build();
     }
 
@@ -265,23 +356,18 @@ public class CartServiceImpl implements CartService {
         log.info("Добавлен новый продукт в корзину: {}", newItem);
     }
 
-    private void updateCart(OrderDto cart, HttpServletResponse response) {
-        UserDto user = userService.getAuthUser();
-
-        if (user != null) {
-            String userCartCookie = USER_CART_COOKIE_PREFIX + user.getId();
-            cookieUtils.setCookieValue(response, userCartCookie, cart, COOKIE_MAX_AGE, COOKIE_PATH);
-        } else {
-            cookieUtils.setCookieValue(response, GUEST_CART_COOKIE, cart, COOKIE_MAX_AGE, COOKIE_PATH);
-        }
+    private void updateGuestCart(OrderDto cart, HttpServletResponse response) {
+        cookieUtils.setCookieValue(response, GUEST_CART_COOKIE, cart, COOKIE_MAX_AGE, COOKIE_PATH);
     }
 
-    private void clearCart(UserDto user, HttpServletResponse response) {
-        if (user != null) {
-            cookieUtils.deleteCookie(response, USER_CART_COOKIE_PREFIX + user.getId(), COOKIE_PATH);
-        } else {
-            cookieUtils.deleteCookie(response, GUEST_CART_COOKIE, COOKIE_PATH);
-        }
+    @Transactional
+    public void recalculateDbCart(Long orderId) {
+        BigDecimal totalAmount = orderProductService.calculateTotalAmountByOrderId(orderId);
+        int totalQuantity = orderProductService.calculateTotalQuantityByOrderId(orderId);
+
+        orderService.updateTotals(orderId, totalAmount, totalQuantity);
+        log.info("Корзина в БД пересчитана: orderId={}, totalAmount={}, totalQuantity={}",
+                orderId, totalAmount, totalQuantity);
     }
 
     private void recalculateCart(OrderDto cart) {
