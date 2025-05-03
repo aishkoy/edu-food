@@ -88,13 +88,15 @@
                             <div class="flex flex-row items-center justify-around mt-4">
                                 <p class="text-gray-600 font-bold text-lg">${product.price} сом</p>
 
-                                <div>
-                                    <form action="/cart" method="post">
+                                <div class="flex items-center justify-between mt-auto pt-3">
+                                    <form action="/cart" method="post" class="flex items-center gap-2">
                                         <@layout.csrf/>
                                         <input type="hidden" name="productId" value="${product.id}">
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit"
-                                                class="bg-teal-600 text-white p-2 rounded-full hover:bg-teal-700 transition">
+                                        <div class="flex items-center border rounded-lg overflow-hidden">
+                                            <input type="number" name="quantity" value="1" min="1"
+                                                   class="w-12 text-center border-0 focus:ring-0 p-1">
+                                        </div>
+                                        <button type="submit" class="bg-teal-600 text-white p-3 rounded-full hover:bg-teal-700 transition duration-200">
                                             <i data-lucide="shopping-cart" class="h-5 w-5"></i>
                                         </button>
                                     </form>

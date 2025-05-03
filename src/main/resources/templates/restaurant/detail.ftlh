@@ -61,10 +61,13 @@
                                 <div class="flex justify-between items-center mt-4">
                                     <span class="text-gray-900 font-bold text-lg">${product.price} сом</span>
 
-                                    <form action="/cart" method="post" class="flex items-center">
+                                    <form action="/cart" method="post" class="flex items-center gap-2">
                                         <@layout.csrf/>
                                         <input type="hidden" name="productId" value="${product.id}">
-                                        <input type="hidden" name="quantity" value="1">
+                                        <div class="flex items-center border rounded-lg overflow-hidden">
+                                            <input type="number" name="quantity" value="1" min="1"
+                                                   class="w-14 text-center border-0 focus:ring-0 p-1" readonly>
+                                        </div>
                                         <button type="submit"
                                                 class="bg-teal-600 text-white p-2 rounded-full hover:bg-teal-700 transition">
                                             <i data-lucide="shopping-cart" class="h-5 w-5"></i>

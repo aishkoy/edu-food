@@ -168,13 +168,18 @@
                                         <a href="/restaurants/${product.restaurant.id}" class="block mt-2 text-sm text-gray-500 hover:text-teal-600 transition">${product.restaurant.name}</a>
                                     </div>
 
-                                    <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
-                                        <span class="text-lg font-bold text-gray-900">${product.price} сом</span>
-                                        <form action="/cart" method="post" class="flex justify-end">
+                                    <div class="flex flex-row items-center justify-between mt-4">
+                                        <p class="text-gray-600 font-bold text-lg">${product.price} сом</p>
+
+                                        <form action="/cart" method="post" class="flex items-center gap-1">
                                             <@layout.csrf/>
                                             <input type="hidden" name="productId" value="${product.id}">
-                                            <input type="hidden" name="quantity" value="1">
-                                            <button type="submit" class="bg-teal-600 text-white p-3 rounded-full hover:bg-teal-700 transition duration-200">
+                                            <div class="flex items-center border rounded-lg overflow-hidden">
+                                                <input type="number" name="quantity" value="1" min="1"
+                                                       class="w-14 text-center border-0 focus:ring-0 p-0.5 text-sm">
+                                            </div>
+                                            <button type="submit"
+                                                    class="bg-teal-600 text-white p-2 rounded-full hover:bg-teal-700 transition">
                                                 <i data-lucide="shopping-cart" class="h-5 w-5"></i>
                                             </button>
                                         </form>
