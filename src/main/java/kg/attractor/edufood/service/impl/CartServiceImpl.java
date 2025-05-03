@@ -181,14 +181,13 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void replaceUserCartWithGuestCart(UserDto user, HttpServletRequest request, HttpServletResponse response) {
+        clearCart(user, response);
         Optional<OrderDto> guestCartOpt = cookieUtils.getCookieValue(request, GUEST_CART_COOKIE, OrderDto.class);
 
         if (guestCartOpt.isPresent()) {
             OrderDto guestCart = guestCartOpt.get();
             String userCartCookie = USER_CART_COOKIE_PREFIX + user.getId();
 
-
-            clearCart(user, response);
             guestCart.setUser(user);
 
             cookieUtils.setCookieValue(response, userCartCookie, guestCart, COOKIE_MAX_AGE, COOKIE_PATH);
