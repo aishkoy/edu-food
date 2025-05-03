@@ -9,14 +9,6 @@
     >
 </#if>
 
-<#assign hasCart = Session?? && Session["cart"]?? />
-<#if hasCart>
-    <#assign
-    cart = Session["cart"]
-    cartItemsCount = cart.totalQuantity!0
-    />
-</#if>
-
 <#macro layout title="EduFood" additionalStyles="" showBackButton=false>
     <!doctype html>
     <html lang="ru">
@@ -64,17 +56,9 @@
                 <div class="flex gap-6 items-center">
                     <a href="/cart" class="relative bg-white rounded-full p-3 shadow-md hover:shadow-lg transition-all">
                         <i data-lucide="shopping-cart" class="h-6 w-6 text-teal-600"></i>
-                        <#if cart??>
-                            <span
-                                    class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                            ${cart.totalQuantity}
+                        <span class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                            ${(cart.totalQuantity)!0}
                         </span>
-                        <#else>
-                            <span
-                                    class="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                            0
-                        </span>
-                        </#if>
                     </a>
 
                     <#if currentUser??>

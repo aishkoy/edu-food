@@ -32,15 +32,6 @@
     <div class="mx-auto w-full bg-amber-300 min-h-screen-lg relative pb-36 pt-24">
         <div class="text-center mb-16">
             <h2 class="text-5xl font-bold text-black mb-8">Доставка еды</h2>
-            <div class="max-w-3xl mx-auto">
-                <div class="flex items-center bg-white rounded-full shadow-md">
-                    <div class="flex items-center pl-4">
-                        <i data-lucide="map-pin" class="h-5 w-5 text-gray-400"></i>
-                    </div>
-                    <input type="text" placeholder="Введите ваш адрес доставки"
-                           class="flex-grow p-4 bg-transparent focus:outline-none rounded-l-full"/>
-                </div>
-            </div>
         </div>
         <div class="wave-bottom absolute bottom-0 w-full"></div>
 
@@ -63,7 +54,7 @@
 
     <div class="container mx-auto px-4 md:px-24 py-16">
         <div class="flex justify-center mb-12">
-            <div class="bg-amber-100 rounded-full p-6 w-32 h-32 flex items-center justify-center">
+            <div class="bg-amber-300 rounded-full p-6 w-32 h-32 flex items-center justify-center">
                 <i data-lucide="utensils" class="h-16 w-16 text-amber-500"></i>
             </div>
         </div>
