@@ -1,6 +1,8 @@
 package kg.attractor.edufood.service.impl;
 
 import kg.attractor.edufood.dto.OrderDto;
+import kg.attractor.edufood.dto.OrderStatusDto;
+import kg.attractor.edufood.dto.UserDto;
 import kg.attractor.edufood.entity.Order;
 import kg.attractor.edufood.exception.nsee.OrderNotFoundException;
 import kg.attractor.edufood.mapper.OrderMapper;
@@ -14,11 +16,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 @Service("orderService")
@@ -27,6 +32,7 @@ import java.util.function.Supplier;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final OrderStatusService orderStatusService;
 
     @Override
     public Page<OrderDto> getAllUserOrders(Long userId, Pageable pageable) {
@@ -96,6 +102,36 @@ public class OrderServiceImpl implements OrderService {
         return ordersPage;
     }
 
+    @Transactional
+    @Override
+    public Order getOrCreateDbCart(UserDto user) {
+        OrderStatusDto cartStatus = orderStatusService.getOrderStatusDtoByName("Корзина");
+        Optional<Order> existingCart = getByUserIdAndStatusId(user.getId(), cartStatus.getId());
+
+        if (existingCart.isPresent()) {
+            return existingCart.get();
+        } else {
+            OrderDto newCart = OrderDto.builder()
+                    .status(cartStatus)
+                    .user(user)
+                    .totalAmount(BigDecimal.ZERO)
+                    .totalQuantity(0)
+                    .build();
+
+            return save(newCart);
+        }
+    }
+
+    @Override
+    public OrderDto mapToDto(Order order) {
+        return orderMapper.toDto(order);
+    }
+
+    @Override
+    public Optional<Order> getByUserIdAndStatusId(Long userId, Long statusId){
+        return orderRepository.findByUserIdAndStatusId(userId, statusId);
+    }
+
     private Order getOrderById(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("Не существует заказа с таким id!"));
@@ -113,8 +149,23 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order save(OrderDto orderDto){
         Order order = orderMapper.toEntity(orderDto);
+        return saveEntity(order);
+    }
+
+    @Override
+    public void delete(Order order){
+        orderRepository.delete(order);
+    }
+
+    @Override
+    public Order saveEntity(Order order){
         log.info("Сохранение нового заказа");
         return orderRepository.save(order);
+    }
+
+    @Override
+    public void updateTotals(Long orderId, BigDecimal totalAmount, int totalQuantity) {
+        orderRepository.update(orderId, totalAmount, totalQuantity);
     }
 
     private Page<OrderDto> getOrderPage(Supplier<Page<Order>> supplier, String notFoundMessage) {
