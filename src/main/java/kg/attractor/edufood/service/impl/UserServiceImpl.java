@@ -128,17 +128,19 @@ public class UserServiceImpl implements UserService {
 
         if (authentication == null) {
             log.error("Authentication is null");
-            throw new NoSuchElementException("user not authorized");
         }
 
         if (authentication instanceof AnonymousAuthenticationToken) {
             log.error("Authentication is anonymous");
-            throw new IllegalArgumentException("user not authorized");
         }
 
         String email = authentication.getName();
         log.info("Поиск юзера по email: {}", email);
-        return getUserByEmail(email);
+        try{
+            return getUserByEmail(email);
+        }catch (NoSuchElementException e){
+            return null;
+        }
     }
 
     private String normalizeField(String field, boolean capitalize) {
