@@ -10,7 +10,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 
@@ -25,15 +24,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CartMergeRedirectFilter cartMergeRedirectFilter() {
-        return new CartMergeRedirectFilter();
-    }
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   CartMergeRedirectFilter cartMergeRedirectFilter,
-                                                   CustomLogoutSuccessHandler logoutSuccessHandler)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .sessionManagement(
                         session ->
@@ -41,14 +32,12 @@ public class SecurityConfig {
                 .formLogin(login -> login
                         .loginPage("/auth/login")
                         .loginProcessingUrl("/auth/login")
-                        .defaultSuccessUrl("/")
+                        .defaultSuccessUrl("/cart/merge-options")
                         .failureUrl("/auth/login?error=true")
                         .permitAll())
                 .logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                        .invalidateHttpSession(false)
                         .clearAuthentication(true)
-                        .logoutSuccessHandler(logoutSuccessHandler)
                         .permitAll())
                 .authorizeHttpRequests(
                         authorizeRequests -> authorizeRequests
@@ -57,8 +46,7 @@ public class SecurityConfig {
                                 .requestMatchers("/profile/**", "/cart/checkout", "/cart/merge-options", "/cart/merge").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/").permitAll()
                                 .anyRequest().permitAll()
-                )
-                .addFilterAfter(cartMergeRedirectFilter, UsernamePasswordAuthenticationFilter.class);
+                );
         return http.build();
     }
 }

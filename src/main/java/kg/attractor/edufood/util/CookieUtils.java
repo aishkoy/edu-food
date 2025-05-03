@@ -58,12 +58,4 @@ public class CookieUtils {
             log.error("Ошибка при сохранении данных в куки {}: {}", cookieName, e.getMessage());
         }
     }
-    
-    public void deleteCookie(HttpServletResponse response, String cookieName, String path) {
-        Cookie cookie = new Cookie(cookieName, null);
-        cookie.setMaxAge(0);
-        cookie.setPath(path);
-        response.addCookie(cookie);
-        log.info("Куки {} успешно удалены", cookieName);
-    }
 }
