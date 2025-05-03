@@ -108,7 +108,7 @@
 
         <div class="text-center">
             <a href="/cart" class="border border-teal-600 text-teal-600 py-2 px-6 rounded-full hover:bg-teal-50 transition duration-200 inline-block">
-                Вернуться к корзине без изменений
+                Вернуться к вашей корзине без изменений
             </a>
         </div>
     </div>

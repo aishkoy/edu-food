@@ -4,6 +4,18 @@
     <div class="mx-auto max-w-4xl w-full my-8">
         <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Корзина</h1>
 
+        <#if successMessage??>
+            <div class="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
+                ${successMessage}
+            </div>
+        </#if>
+
+        <#if errorMessage??>
+            <div class="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
+                ${errorMessage}
+            </div>
+        </#if>
+
         <#if cart?? && cart.orderProducts?has_content>
             <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
                 <div class="p-6">

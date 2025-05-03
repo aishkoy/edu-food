@@ -65,8 +65,8 @@
                                         <@layout.csrf/>
                                         <input type="hidden" name="productId" value="${product.id}">
                                         <div class="flex items-center border rounded-lg overflow-hidden">
-                                            <input type="number" name="quantity" value="1" min="1"
-                                                   class="w-14 text-center border-0 focus:ring-0 p-1" readonly>
+                                            <input type="number" name="quantity" value="1" min="1" max="100"
+                                                   class="w-14 text-center border-0 focus:ring-0 p-1">
                                         </div>
                                         <button type="submit"
                                                 class="bg-teal-600 text-white p-2 rounded-full hover:bg-teal-700 transition">
